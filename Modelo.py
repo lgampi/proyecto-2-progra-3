@@ -1,4 +1,5 @@
-# Mode: Clases que almacenan datos y logica del programa
+# Modelo: Clases que almacenan datos y logica del programa
+import os
 
 
 class Tren:
@@ -44,7 +45,7 @@ class ManejadorArchivos:  # Clase padre que sirve como "molde", sirve como una i
     def leer_de_archivo(self):
         pass
 
-    def escribir_a_archivo(self):
+    def escribir_a_archivo(self, o):
         pass
 
 
@@ -72,7 +73,7 @@ class ManejadorArchivosTren(ManejadorArchivos):
             for line in file:
                 return line
 
-    def escribir_a_archivo(self):
+    def escribir_a_archivo(self, o):
         ruta = ManejadorArchivosTren.RUTA_TRENES
         with open(ruta, "w") as file:
             file.write("Prueba trenes")
@@ -97,15 +98,26 @@ class ManejadorArchivosTiquete(ManejadorArchivos):
         return ManejadorArchivosTiquete.instancia_singleton
 
     def leer_de_archivo(self):
+        tiquetes = []
         ruta = ManejadorArchivosTiquete.RUTA_TIQUETES
         with open(ruta, "r") as file:
             for line in file:
-                return line
+                dato_tiquete = line.split(",")  # Separar el string por "," en una lista.
+                matricula = dato_tiquete[0]
+                num_tiquete = dato_tiquete[1]
+                destino = dato_tiquete[2]
+                hora_salida = dato_tiquete[3]
+                tiquete = Tiquete(matricula, num_tiquete, destino, hora_salida)
+                tiquetes.append(tiquete)
+        return tiquetes
 
-    def escribir_a_archivo(self):
+    def escribir_a_archivo(self, o):
         ruta = ManejadorArchivosTiquete.RUTA_TIQUETES
-        with open(ruta, "w") as file:
-            file.write("Prueba tiquetes")
+        try:
+            with open(ruta, "a") as file:
+                file.write(f"{o.get_tren()},{o.get_num_tiquete()},{o.get_destino()},{o.get_hora_salida()}\n")
+        except FileNotFoundError:
+            print(f"Excepcion, el archivo {ruta} no existe")
 
 
 class FabricaManejadorArchivos:
@@ -121,3 +133,42 @@ class FabricaManejadorArchivos:
         else:
             raise Exception("No existe este tipo de objeto a fabricar")
 
+
+class GestorDeEstacion:
+    # Esta clase maneja la cantidad de tiquetes y los trenes, es la clase principal del modelo.
+
+    # Atributos de clase constantes para manejo de archivos
+
+    FABRICA_MANEJADORES = FabricaManejadorArchivos()
+    MANEJADOR_TIQUETES = FABRICA_MANEJADORES.fabricar_manejador_de_archivos(1)
+    MANEJADOR_TRENES = FABRICA_MANEJADORES.fabricar_manejador_de_archivos(2)
+    secuencia_tiquetes = 1  # Se inicializa como 1, se actualiza al leer tiquetes. Esta es la proxima secuencia esperable, no la ultima.
+
+    def __init__(self):
+        self.__tiquetes = []
+        self.__trenes = []
+
+    def obtener_tiquetes(self):
+        # Cada vez que la vista pide la lista de tiquetes, esta se actualiza.
+        self.__tiquetes = GestorDeEstacion.MANEJADOR_TIQUETES.leer_de_archivo()
+
+        # Actualizar la ultima secuencia de tiquetes
+
+        if len(self.__tiquetes) > 0:  # Se valida si hay al menos un tiquete en el archivo
+            ultimo_tiquete = self.__tiquetes[-1]
+            GestorDeEstacion.secuencia_tiquetes = int(
+                ultimo_tiquete.get_num_tiquete()) + 1  # Ej: si estamos en el 400, ahora el ultimo es el 401
+        else:
+            pass  # Como la secuencia se inicializa en 1, no hace falta reasignar su valor.
+        return self.__tiquetes
+
+    def insertar_tiquetes(self, can_tiquetes, tren, destino, hora_de_salida):
+        # Mejorar despues
+        self.obtener_tiquetes()  # Se actualiza la lista de tiquetes, y se obtiene el último tiquete generado.
+
+        for i in range(0, can_tiquetes):  # Para cada tiquete se quiere insertar
+            nuevo_tiquete = Tiquete(tren, GestorDeEstacion.secuencia_tiquetes, destino, hora_de_salida)
+            GestorDeEstacion.MANEJADOR_TIQUETES.escribir_a_archivo(nuevo_tiquete)
+            # Como ya actualizamos los tiquetes, con la lista que ya tenemos, basta con agregarlo a dicha lista
+            self.__tiquetes.append(nuevo_tiquete)
+            GestorDeEstacion.secuencia_tiquetes += 1
