@@ -15,11 +15,12 @@ class Tren:
 
 
 class Tiquete:
-    def __init__(self, tren, num_tiquete, destino, hora_salida):
+    def __init__(self, tren, num_tiquete, destino, hora_salida, vendido):
         self.__tren = tren
         self.__num_tiquete = num_tiquete
         self.__destino = destino
         self.__hora_salida = hora_salida
+        self.__vendido = vendido  # En el archivo a guardar, se refleja como 0 o 1 y se convierte a booleano.
 
     def get_destino(self):
         return self.__destino
@@ -32,6 +33,12 @@ class Tiquete:
 
     def get_tren(self):
         return self.__tren
+
+    def get_vendido(self):
+        return self.__vendido
+
+    def set_vendido(self, vendido):
+        self.__vendido = vendido
 
 
 class ManejadorArchivos:  # Clase padre que sirve como "molde", sirve como una interfaz.
@@ -113,7 +120,10 @@ class ManejadorArchivosTiquete(ManejadorArchivos):
                 num_tiquete = dato_tiquete[1]
                 destino = dato_tiquete[2]
                 hora_salida = dato_tiquete[3]
-                tiquete = Tiquete(matricula, num_tiquete, destino, hora_salida)
+                vendido = False  # Por default en True, a menos de que se encuentre lo contrario en el archivo
+                if int(dato_tiquete[4]) == 1:
+                    vendido = True
+                tiquete = Tiquete(matricula, num_tiquete, destino, hora_salida, vendido)
                 tiquetes.append(tiquete)
         return tiquetes
 
@@ -121,7 +131,10 @@ class ManejadorArchivosTiquete(ManejadorArchivos):
         ruta = ManejadorArchivosTiquete.RUTA_TIQUETES
         try:
             with open(ruta, "a") as file:
-                file.write(f"{o.get_tren()},{o.get_num_tiquete()},{o.get_destino()},{o.get_hora_salida()}\n")
+                vendido = 0
+                if o.get_vendido() is True:
+                    vendido = 1
+                file.write(f"{o.get_tren()},{o.get_num_tiquete()},{o.get_destino()},{o.get_hora_salida()},{vendido}\n")
         except FileNotFoundError:
             print(f"Excepcion, el archivo {ruta} no existe")
 
@@ -153,6 +166,22 @@ class GestorDeEstacion:
     def __init__(self):
         self.__tiquetes = []
         self.__trenes = []
+        self.__destinos = ["Heredia", "Cartago"]
+        self.__horarios = ["6:00AM", "7:00AM", "8:00AM", "3:00PM", "4:00PM", "5:00PM"]
+        self.__can_tiquetes = ["25", "50", "100"]
+        self.__criterios_seleccion = ["Tren", "Destino", "Horario"]
+
+    def get_criterios_seleccion(self):
+        return self.__criterios_seleccion
+
+    def get_destinos(self):
+        return self.__destinos
+
+    def get_horarios(self):
+        return self.__horarios
+
+    def get_can_tiquetes(self):
+        return self.__can_tiquetes
 
     def obtener_tiquetes(self):
         # Cada vez que la vista pide la lista de tiquetes, esta se actualiza.
@@ -161,7 +190,7 @@ class GestorDeEstacion:
         # Actualizar la ultima secuencia de tiquetes
 
         if len(self.__tiquetes) > 0:  # Se valida si hay al menos un tiquete en el archivo
-            ultimo_tiquete = self.__tiquetes[-1]
+            ultimo_tiquete = self.__tiquetes[-1]  # Con -1 se accede al ultimo elemento de la lista
             GestorDeEstacion.secuencia_tiquetes = int(
                 ultimo_tiquete.get_num_tiquete()) + 1  # Ej: si estamos en el 400, ahora el ultimo es el 401
         else:
@@ -173,11 +202,46 @@ class GestorDeEstacion:
         self.obtener_tiquetes()  # Se actualiza la lista de tiquetes, y se obtiene el último tiquete generado.
 
         for i in range(0, can_tiquetes):  # Para cada tiquete se quiere insertar
-            nuevo_tiquete = Tiquete(tren, GestorDeEstacion.secuencia_tiquetes, destino, hora_de_salida)
+            nuevo_tiquete = Tiquete(tren, GestorDeEstacion.secuencia_tiquetes, destino, hora_de_salida, False)
             GestorDeEstacion.MANEJADOR_TIQUETES.escribir_a_archivo(nuevo_tiquete)
             # Como ya actualizamos los tiquetes, con la lista que ya tenemos, basta con agregarlo a dicha lista
             self.__tiquetes.append(nuevo_tiquete)
             GestorDeEstacion.secuencia_tiquetes += 1
+
+    def obtener_tiquetes_no_vendidos(self, criterio):
+        # Con el parametro criterio, vamos a agrupar por horario, destino o matricula.
+        if criterio not in self.__criterios_seleccion:  # Si criterio no es ninguno de estos tres
+            raise Exception("Parametro 'criterio' invalido")
+
+        self.obtener_tiquetes()  # Con esto actualizamos la lista de tiquetes (self.__tiquetes)
+
+        # Con esto vamos actualizamos la lista de trenes y obtenemos sus matriculas.
+        matriculas_trenes = self.obtener_matriculas_trenes()
+        grupos = []
+        tiquetes_resultantes = dict()  # Vamos a usar un diccionario para agrupar a los tiquetes
+        if criterio == "Tren":
+            for matricula_tren in matriculas_trenes:  # Para cada matricula del tren
+                # Acá, a cada matricula del tren, le damos una lista vacia para agrupar, usando la matricula como llave.
+                tiquetes_resultantes[matricula_tren] = []
+            for tiquete in self.__tiquetes:
+                if tiquete.get_vendido() is False:
+                    tiquetes_resultantes[tiquete.get_tren()].append(tiquete)
+        elif criterio == "Destino":
+            for destino in self.__destinos:  # Para cada destino
+                # A cada destino se le da una lista vacia para agrupar, usando el destino como llave,
+                tiquetes_resultantes[destino] = []
+            for tiquete in self.__tiquetes:
+                if tiquete.get_vendido() is False:
+                    tiquetes_resultantes[tiquete.get_destino()].append(tiquete)
+        elif criterio == "Horario":
+            for horario in self.__horarios:  # Para cada horario
+                # A cada horario se le da una lista vacia para agrupar, usando lah ora como llave.
+                tiquetes_resultantes[horario] = []
+            for tiquete in self.__tiquetes:
+                if tiquete.get_vendido() is False:
+                    tiquetes_resultantes[tiquete.get_hora_salida()].append(tiquete)
+
+        return tiquetes_resultantes
 
     def obtener_matriculas_trenes(self):
         self.__trenes = GestorDeEstacion.MANEJADOR_TRENES.leer_de_archivo()

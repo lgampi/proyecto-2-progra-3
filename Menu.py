@@ -3,18 +3,140 @@ from Modelo import GestorDeEstacion
 
 
 class VentanaVentaTiquete(tk.Toplevel):  # tk.TopLevel permite crear una ventana separada a la principal
+    ANCHO_DROPDOWN = 20
+
     def __init__(self, master):
         super().__init__(master)
+
+        # Inicializacion de widgets
+
+        self.dicc_opciones_tiquetes = None
+        self.valor_segun_criterio = None
+        self.valores_segun_criterio = None
+        self.dropdown_valor_criterio = None
+        self.etiqueta_valor_criterio = None
+        self.dropdown_valor_criterio_var = None
+        self.opciones_valor_criterio = None
+        self.criterio_seleccionado = None
+        self.etiqueta_tiquete = None
+        self.opciones_tiquetes = None
+        self.opciones_criterios_seleccion = None
+
+        self.etiqueta_titulo = None
+        self.titulo = None
+
+        self.dropdown_criterio_seleccion_var = None
+        self.dropdown_tiquetes_var = None
+
+        self.boton_cerrar = None
+        self.boton_guardar = None
+
+        self.etiqueta_criterio_seleccion = None
+        self.dropdown_criterio_seleccion = None
+        self.etiqueta_tiquetes = None
+        self.dropdown_tiquetes = None
+
         self.title("Venta de Tiquetes - Trenes S.A")
         self.mostrar_ventana()
 
     def mostrar_ventana(self):
-        self.mensaje = Menu.GESTOR_ESTACION.obtener_tiquetes()
-        self.label = tk.Label(self, text=self.mensaje)
-        self.label.pack(padx=Menu.CONFIG_MENU["PAD_X_BOTON"], pady=Menu.CONFIG_MENU["PAD_Y_BOTON"])
         self.geometry(Menu.CONFIG_MENU["TAMANO_INICIAL"])
-        self.close_button = tk.Button(self, text="Cerrar", command=self.destroy)
-        self.close_button.pack()
+
+        self.titulo = "Seleccione las opciones correspondientes y de click en el botón de 'Guardar cambios'"
+        self.etiqueta_titulo = tk.Label(self, text=self.titulo)
+        self.etiqueta_titulo.pack(padx=Menu.CONFIG_MENU["PAD_X_BOTON"], pady=Menu.CONFIG_MENU["PAD_Y_BOTON"])
+        self.geometry(Menu.CONFIG_MENU["TAMANO_INICIAL"])
+
+        # Criterio de seleccion
+
+        self.opciones_criterios_seleccion = Menu.GESTOR_ESTACION.get_criterios_seleccion()
+        # Variables para almacenar las selecciones de los dropdowns
+        self.dropdown_criterio_seleccion_var = tk.StringVar(self)
+        self.dropdown_criterio_seleccion_var.set(self.opciones_criterios_seleccion[0])  # Valor por defecto
+        self.criterio_seleccionado = self.opciones_criterios_seleccion[0]
+
+        self.etiqueta_criterio_seleccion = tk.Label(self, text="Seleccione el criterio de filtrado:")
+        self.etiqueta_criterio_seleccion.pack()
+
+        self.dropdown_criterio_seleccion = tk.OptionMenu(self, self.dropdown_criterio_seleccion_var,
+                                                         *self.opciones_criterios_seleccion)
+        self.dropdown_criterio_seleccion.pack()
+        self.dropdown_criterio_seleccion.config(width=VentanaVentaTiquete.ANCHO_DROPDOWN)
+
+        # Le da segumiento al objeto del dropdown que selecciona los valores, para saber si cambiaron.
+        self.dropdown_criterio_seleccion_var.trace("w", self.cambio_de_valor_de_dropdown_criterio)
+
+        # Dropdown de valores, segun el criterio de seleccion.
+
+        # Este metodo determina cual debe ser el valor default a seleccionar el segundo dropdown, y sus respectivos valores si el primer dropdown cambia
+        self.valor_segun_criterio = None
+        self.valores_segun_criterio = None
+        if self.criterio_seleccionado == "Tren":
+            self.valores_segun_criterio = Menu.GESTOR_ESTACION.obtener_matriculas_trenes()
+            self.valor_segun_criterio = self.valores_segun_criterio[0]
+        elif self.criterio_seleccionado == "Destino":
+            self.valores_segun_criterio = Menu.GESTOR_ESTACION.get_destinos()
+            self.valor_segun_criterio = self.valores_segun_criterio[0]
+        elif self.criterio_seleccionado == "Horario":
+            self.valores_segun_criterio = Menu.GESTOR_ESTACION.get_horarios()
+            self.valor_segun_criterio = self.valores_segun_criterio[0]
+
+        self.dropdown_valor_criterio_var = tk.StringVar(self)
+        self.dropdown_valor_criterio_var.set(self.valor_segun_criterio)  # Valor por defecto
+        self.etiqueta_valor_criterio = tk.Label(self, text="Seleccione el valor:")
+        self.etiqueta_valor_criterio.pack()
+        self.dropdown_valor_criterio = tk.OptionMenu(self, self.dropdown_valor_criterio_var,
+                                                     *self.valores_segun_criterio)
+        self.dropdown_valor_criterio.pack()
+        self.dropdown_valor_criterio.config(width=VentanaVentaTiquete.ANCHO_DROPDOWN)
+        # Le da segumiento al objeto del dropdown que selecciona los valores, para saber si cambiaron.
+        self.dropdown_valor_criterio_var.trace("w", self.cambio_de_valor_de_dropdown_valores_crit)
+
+
+        # Falta la parte de tiquetes
+
+
+
+        # Botones
+        self.boton_guardar = tk.Button(self, text="Guardar cambios", command=self.vender_tiquete)
+        self.boton_guardar.pack()
+        self.boton_cerrar = tk.Button(self, text="Cerrar", command=self.destroy)
+        self.boton_cerrar.pack()
+
+    def actualizar_valores_dropdown_valores_crit(self):
+
+        # Este metodo determina cual debe ser el valor default a seleccionar el segundo dropdown, y sus respectivos valores si el primer dropdown cambia
+        self.valor_segun_criterio = None
+        self.valores_segun_criterio = None
+        if self.criterio_seleccionado == "Tren":
+            self.valores_segun_criterio = Menu.GESTOR_ESTACION.obtener_matriculas_trenes()
+            self.valor_segun_criterio = self.valores_segun_criterio[0]
+        elif self.criterio_seleccionado == "Destino":
+            self.valores_segun_criterio = Menu.GESTOR_ESTACION.get_destinos()
+            self.valor_segun_criterio = self.valores_segun_criterio[0]
+        elif self.criterio_seleccionado == "Horario":
+            self.valores_segun_criterio = Menu.GESTOR_ESTACION.get_horarios()
+            self.valor_segun_criterio = self.valores_segun_criterio[0]
+
+        # Clear the existing menu
+        self.dropdown_valor_criterio['menu'].delete(0, 'end')
+        # Add new options
+        for valores_criterio in self.valores_segun_criterio:
+            self.dropdown_valor_criterio['menu'].add_command(label=valores_criterio,
+                                                             command=tk._setit(self.dropdown_valor_criterio_var,
+                                                                               valores_criterio))
+
+        self.dropdown_valor_criterio_var.set(self.valor_segun_criterio)  # Valor por defecto
+
+    def cambio_de_valor_de_dropdown_criterio(self, *args):  # *args se pone para evitar errores
+        self.criterio_seleccionado = self.dropdown_criterio_seleccion_var.get()
+        self.actualizar_valores_dropdown_valores_crit()
+
+    def cambio_de_valor_de_dropdown_valores_crit(self, *args):  # *args se pone para evitar errores
+        self.valor_segun_criterio = self.dropdown_valor_criterio_var.get()
+
+    def vender_tiquete(self):
+        print("Tamos vendiendo tiquetes")
 
 
 class VentanaInsertarTiquetes(tk.Toplevel):  # tk.TopLevel permite crear una ventana separada a la principal
@@ -59,9 +181,9 @@ class VentanaInsertarTiquetes(tk.Toplevel):  # tk.TopLevel permite crear una ven
         # Define los valores por defecto para los dropdowns
 
         self.opciones_trenes = Menu.GESTOR_ESTACION.obtener_matriculas_trenes()
-        self.opciones_destino = ["Heredia", "Cartago"]
-        self.opciones_horario = ["6:00AM", "7:00AM", "8:00AM", "3:00PM", "4:00PM", "5:00PM"]
-        self.opciones_can_tiquetes = ["25", "50", "100"]
+        self.opciones_destino = Menu.GESTOR_ESTACION.get_destinos()
+        self.opciones_horario = Menu.GESTOR_ESTACION.get_horarios()
+        self.opciones_can_tiquetes = Menu.GESTOR_ESTACION.get_can_tiquetes()
         # Variables para almacenar las selecciones de los dropdowns
         self.dropdown_trenes_var = tk.StringVar(self)
         self.dropdown_trenes_var.set(self.opciones_trenes[0])  # Valor por defecto
