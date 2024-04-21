@@ -57,7 +57,8 @@ class VentanaInsertarTiquetes(tk.Toplevel):  # tk.TopLevel permite crear una ven
         # Dropdowns y etiquetas para insertar nuevos tiquetes.
 
         # Define los valores por defecto para los dropdowns
-        self.opciones_trenes = ["5001", "5002", "5003", "5004"]
+
+        self.opciones_trenes = Menu.GESTOR_ESTACION.obtener_matriculas_trenes()
         self.opciones_destino = ["Heredia", "Cartago"]
         self.opciones_horario = ["6:00AM", "7:00AM", "8:00AM", "3:00PM", "4:00PM", "5:00PM"]
         self.opciones_can_tiquetes = ["25", "50", "100"]

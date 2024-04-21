@@ -69,9 +69,15 @@ class ManejadorArchivosTren(ManejadorArchivos):
 
     def leer_de_archivo(self):
         ruta = ManejadorArchivosTren.RUTA_TRENES
+        trenes = []
         with open(ruta, "r") as file:
             for line in file:
-                return line
+                linea = line.split(",")
+                matricula = linea[0]
+                estado = linea[1]
+                tren = Tren(matricula, estado)
+                trenes.append(tren)
+        return trenes
 
     def escribir_a_archivo(self, o):
         ruta = ManejadorArchivosTren.RUTA_TRENES
@@ -172,3 +178,8 @@ class GestorDeEstacion:
             # Como ya actualizamos los tiquetes, con la lista que ya tenemos, basta con agregarlo a dicha lista
             self.__tiquetes.append(nuevo_tiquete)
             GestorDeEstacion.secuencia_tiquetes += 1
+
+    def obtener_matriculas_trenes(self):
+        self.__trenes = GestorDeEstacion.MANEJADOR_TRENES.leer_de_archivo()
+        # List comprehension, genera una lista de matriculas apartir de la lista de objetos de trenes self.__trenes .
+        return [tren.get_matricula() for tren in self.__trenes]
