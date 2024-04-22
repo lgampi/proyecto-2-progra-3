@@ -40,6 +40,10 @@ class Tiquete:
     def set_vendido(self, vendido):
         self.__vendido = vendido
 
+    # Sobreescribiendo el metodo __str__ para representar el objeto como string de la siguiente manera:
+    def __str__(self):
+        return f"{self.__num_tiquete},{self.__tren},{self.__destino},{self.__hora_salida}"
+
 
 class ManejadorArchivos:  # Clase padre que sirve como "molde", sirve como una interfaz.
     def __init__(self):
@@ -135,6 +139,24 @@ class ManejadorArchivosTiquete(ManejadorArchivos):
                 if o.get_vendido() is True:
                     vendido = 1
                 file.write(f"{o.get_tren()},{o.get_num_tiquete()},{o.get_destino()},{o.get_hora_salida()},{vendido}\n")
+        except FileNotFoundError:
+            print(f"Excepcion, el archivo {ruta} no existe")
+
+    def vender_tiquete(self, num_tiquete):
+        ruta = ManejadorArchivosTiquete.RUTA_TIQUETES
+        try:
+            tiquetes = self.leer_de_archivo()  # Obtiene la lista de tiquetes.
+            linea = 1
+            for tiquete in tiquetes:
+                if tiquete.get_num_tiquete() == num_tiquete:
+                    tiquete.set_vendido(True)
+            # Uso del operador ternario
+            lineas_por_escribir = [
+                f"{o.get_tren()},{o.get_num_tiquete()},{o.get_destino()},{o.get_hora_salida()},{1 if o.get_vendido() is True else 0}\n"
+                for o in tiquetes]
+            with open(ruta,
+                      "w+") as file:  # El modo w+ trunca (vacia) el archivo y luego escribe sobre el, el nuevo contenido.
+                file.writelines(lineas_por_escribir)
         except FileNotFoundError:
             print(f"Excepcion, el archivo {ruta} no existe")
 
@@ -243,7 +265,17 @@ class GestorDeEstacion:
 
         return tiquetes_resultantes
 
+    def obtener_can_tiquetes_no_vendidos_formato_matriz(self):
+        tiquetes_no_vendidos = self.obtener_tiquetes_no_vendidos(self.__criterios_seleccion[1])
+        matriz_resultado = []
+        for llave, valor in tiquetes_no_vendidos.items():
+            matriz_resultado.append([llave, len(tiquetes_no_vendidos[llave])])
+        return matriz_resultado
+
     def obtener_matriculas_trenes(self):
         self.__trenes = GestorDeEstacion.MANEJADOR_TRENES.leer_de_archivo()
         # List comprehension, genera una lista de matriculas apartir de la lista de objetos de trenes self.__trenes .
         return [tren.get_matricula() for tren in self.__trenes]
+
+    def vender_tiquete(self, num_tiquete_a_vender):
+        GestorDeEstacion.MANEJADOR_TIQUETES.vender_tiquete(num_tiquete_a_vender)

@@ -10,6 +10,7 @@ class VentanaVentaTiquete(tk.Toplevel):  # tk.TopLevel permite crear una ventana
 
         # Inicializacion de widgets
 
+        self.tiquete_a_vender = None
         self.dicc_opciones_tiquetes = None
         self.valor_segun_criterio = None
         self.valores_segun_criterio = None
@@ -42,11 +43,6 @@ class VentanaVentaTiquete(tk.Toplevel):  # tk.TopLevel permite crear una ventana
     def mostrar_ventana(self):
         self.geometry(Menu.CONFIG_MENU["TAMANO_INICIAL"])
 
-        self.titulo = "Seleccione las opciones correspondientes y de click en el botón de 'Guardar cambios'"
-        self.etiqueta_titulo = tk.Label(self, text=self.titulo)
-        self.etiqueta_titulo.pack(padx=Menu.CONFIG_MENU["PAD_X_BOTON"], pady=Menu.CONFIG_MENU["PAD_Y_BOTON"])
-        self.geometry(Menu.CONFIG_MENU["TAMANO_INICIAL"])
-
         # Criterio de seleccion
 
         self.opciones_criterios_seleccion = Menu.GESTOR_ESTACION.get_criterios_seleccion()
@@ -56,11 +52,10 @@ class VentanaVentaTiquete(tk.Toplevel):  # tk.TopLevel permite crear una ventana
         self.criterio_seleccionado = self.opciones_criterios_seleccion[0]
 
         self.etiqueta_criterio_seleccion = tk.Label(self, text="Seleccione el criterio de filtrado:")
-        self.etiqueta_criterio_seleccion.pack()
 
         self.dropdown_criterio_seleccion = tk.OptionMenu(self, self.dropdown_criterio_seleccion_var,
                                                          *self.opciones_criterios_seleccion)
-        self.dropdown_criterio_seleccion.pack()
+
         self.dropdown_criterio_seleccion.config(width=VentanaVentaTiquete.ANCHO_DROPDOWN)
 
         # Le da segumiento al objeto del dropdown que selecciona los valores, para saber si cambiaron.
@@ -84,22 +79,73 @@ class VentanaVentaTiquete(tk.Toplevel):  # tk.TopLevel permite crear una ventana
         self.dropdown_valor_criterio_var = tk.StringVar(self)
         self.dropdown_valor_criterio_var.set(self.valor_segun_criterio)  # Valor por defecto
         self.etiqueta_valor_criterio = tk.Label(self, text="Seleccione el valor:")
-        self.etiqueta_valor_criterio.pack()
+
         self.dropdown_valor_criterio = tk.OptionMenu(self, self.dropdown_valor_criterio_var,
                                                      *self.valores_segun_criterio)
-        self.dropdown_valor_criterio.pack()
+
         self.dropdown_valor_criterio.config(width=VentanaVentaTiquete.ANCHO_DROPDOWN)
         # Le da segumiento al objeto del dropdown que selecciona los valores, para saber si cambiaron.
         self.dropdown_valor_criterio_var.trace("w", self.cambio_de_valor_de_dropdown_valores_crit)
 
+        # Tiquetes
 
-        # Falta la parte de tiquetes
+        # Se retorna un diccionario de la forma:
+        """
+        {
+            "llave_1": [tiquete_1,tiquete_2,tiquete_3...],
+            "llave_2": [tiquete_10,tiquete_11,tiquete_12...],
+        }
+        Donde las llaves pueden ser: Numero de placa de tren ó lugar de destino ó hora de salida.
+        """
+        self.dicc_opciones_tiquetes = Menu.GESTOR_ESTACION.obtener_tiquetes_no_vendidos(self.criterio_seleccionado)
 
+        llave_opciones_tiquetes = self.valor_segun_criterio
+        # Se espera que los valores segun el criterio, sean las mismas llaves que agrupan al diccionario de tiquetes.
+        # Ejemplo: Si los trenes son [5001,5002], se espera que las llaves igualmente sean 5001 y 5002.
 
+        # List comprehension para componer una lista de numeros de tiquetes basados en la lista de tiquetes
+        self.opciones_tiquetes = [tiquete.__str__() for tiquete in self.dicc_opciones_tiquetes[llave_opciones_tiquetes]]
+        primer_elemento_lista = None
+        mostrar = True
+        if len(self.opciones_tiquetes) > 0:  # Debe haber al menos un tiquete registrado
+            primer_elemento_lista = self.opciones_tiquetes[
+                0]  # El primer elemento de la lista accedida por medio de la llave del diccionario.
+        else:
+            mostrar = False
 
-        # Botones
-        self.boton_guardar = tk.Button(self, text="Guardar cambios", command=self.vender_tiquete)
-        self.boton_guardar.pack()
+        if mostrar:  # Si no hay ni un solo tiquete leido del archivo, no se deben mostrar las opciones.
+            self.titulo = "Seleccione las opciones correspondientes y de click en el botón de 'Guardar cambios'"
+            self.etiqueta_titulo = tk.Label(self, text=self.titulo)
+            self.etiqueta_titulo.pack(padx=Menu.CONFIG_MENU["PAD_X_BOTON"], pady=Menu.CONFIG_MENU["PAD_Y_BOTON"])
+            self.geometry(Menu.CONFIG_MENU["TAMANO_INICIAL"])
+
+            self.tiquete_a_vender = primer_elemento_lista
+            self.dropdown_tiquetes_var = tk.StringVar(self)
+
+            self.dropdown_tiquetes_var.set(primer_elemento_lista)  # Valor por defecto
+            self.etiqueta_tiquete = tk.Label(self, text="Seleccione el tiquete a vender:")
+
+            self.dropdown_tiquetes = tk.OptionMenu(self, self.dropdown_tiquetes_var, *self.opciones_tiquetes)
+
+            self.dropdown_tiquetes.config(width=VentanaVentaTiquete.ANCHO_DROPDOWN)
+            self.dropdown_tiquetes_var.trace("w", self.cambio_de_valor_de_tiquete)
+
+            # Botones
+            self.boton_guardar = tk.Button(self, text="Vender tiquete seleccionado", command=self.vender_tiquete)
+
+            self.etiqueta_criterio_seleccion.pack()
+            self.dropdown_criterio_seleccion.pack()
+            self.etiqueta_valor_criterio.pack()
+            self.dropdown_valor_criterio.pack()
+            self.etiqueta_tiquete.pack()
+            self.dropdown_tiquetes.pack()
+            self.boton_guardar.pack()
+        else:
+            self.titulo = "Debe haber al menos un tiquete registrado para la venta!"
+            self.etiqueta_titulo = tk.Label(self, text=self.titulo)
+            self.etiqueta_titulo.pack(padx=Menu.CONFIG_MENU["PAD_X_BOTON"], pady=Menu.CONFIG_MENU["PAD_Y_BOTON"])
+            self.geometry(Menu.CONFIG_MENU["TAMANO_INICIAL"])
+
         self.boton_cerrar = tk.Button(self, text="Cerrar", command=self.destroy)
         self.boton_cerrar.pack()
 
@@ -135,8 +181,21 @@ class VentanaVentaTiquete(tk.Toplevel):  # tk.TopLevel permite crear una ventana
     def cambio_de_valor_de_dropdown_valores_crit(self, *args):  # *args se pone para evitar errores
         self.valor_segun_criterio = self.dropdown_valor_criterio_var.get()
 
+    def cambio_de_valor_de_tiquete(self, *args):
+        self.tiquete_a_vender = self.dropdown_tiquetes_var.get()
+        print(f"Tiquete seleccionado: {self.tiquete_a_vender}")
+
     def vender_tiquete(self):
-        print("Tamos vendiendo tiquetes")
+        num_tiquete_a_vender = None
+        if self.tiquete_a_vender is not None:
+            num_tiquete_a_vender = self.tiquete_a_vender.split(",")[
+                0]  # Un ejemplo del string esperado es el siguiente: 1,5001,Heredia,6:00AM
+            # donde 1 es el num de tiquete, 5001 la matricula del tren, Heredia el destino y 6:00AM la hora de salida.
+        if num_tiquete_a_vender is not None:
+            print(f"Se ha registrado el tiquete con el numero {num_tiquete_a_vender} para venta")
+            Menu.GESTOR_ESTACION.vender_tiquete(num_tiquete_a_vender)
+
+        print(f"Tiquete: {self.tiquete_a_vender} vendido!")
 
 
 class VentanaInsertarTiquetes(tk.Toplevel):  # tk.TopLevel permite crear una ventana separada a la principal
@@ -240,6 +299,51 @@ class VentanaInsertarTiquetes(tk.Toplevel):  # tk.TopLevel permite crear una ven
         Menu.GESTOR_ESTACION.insertar_tiquetes(int(can_tiquetes), matricula_tren, destino, horario)
 
 
+class TablaConsultas(tk.Frame):
+    def __init__(self, padre, datos):  # datos es una matriz
+        tk.Frame.__init__(self, padre)
+        can_filas = len(datos)
+        can_columnas = len(datos[0])
+        # Primero crea la matriz con las entradas tk.Entry, para posteriormente agregar los datos
+        self.celdas = [[tk.Entry(self) for j in range(can_filas)] for i in range(can_columnas)]
+
+        # En este ciclo se agregan los datos como un label
+        for i in range(can_filas):
+            for j in range(can_columnas):
+                dato_celda = datos[i][j]
+                celda = tk.Label(self, text=dato_celda, borderwidth=1, relief="solid", width=10)
+                celda.grid(row=i, column=j)  # Posicion de los objetos celda con una disposicicion (layout) de tipo grid
+                self.celdas[i][j] = celda
+
+
+class VentanaConsulta(tk.Toplevel):  # tk.TopLevel permite crear una ventana separada a la principal
+    ANCHO_DROPDOWN = 20
+
+    def __init__(self, master):
+        super().__init__(master)
+        self.tabla_consultas = None
+        self.boton_cerrar = None
+        self.label = None
+        self.mensaje = None
+        self.title("Consulta de Tiquetes Por Localización - Trenes S.A")
+        self.mostrar_ventana()
+
+    def mostrar_ventana(self):
+        self.mensaje = "Detalle de tiquetes disponibles según localización:"
+        self.label = tk.Label(self, text=self.mensaje)
+        self.label.pack(padx=Menu.CONFIG_MENU["PAD_X_BOTON"], pady=Menu.CONFIG_MENU["PAD_Y_BOTON"])
+        self.geometry(Menu.CONFIG_MENU["TAMANO_INICIAL"])
+
+        datos = Menu.GESTOR_ESTACION.obtener_can_tiquetes_no_vendidos_formato_matriz()
+
+        self.tabla_consultas = TablaConsultas(self, datos)
+        # Inicializacion de widgets
+        self.tabla_consultas.pack()
+
+        self.boton_cerrar = tk.Button(self, text="Cerrar", command=self.destroy)
+        self.boton_cerrar.pack()
+
+
 class Menu(tk.Tk):  # La clase menu es heredada de la clase tk.Tk
 
     # atributos de clase (también son constantes), para la interfaz visual (almacenados en un diccionario cons)
@@ -260,6 +364,8 @@ class Menu(tk.Tk):  # La clase menu es heredada de la clase tk.Tk
         self.__ventana_venta_tiquetes = None
         self.__ventana_insertar_tiquetes_visible = False
         self.__ventana_insertar_tiquetes = None
+        self.__ventana_consultas_visible = False
+        self.__ventana_consultas = None
         self.dibujar_ventana_principal(nombre_ventana)
 
     def dibujar_ventana_principal(self, nombre_ventana):
@@ -297,7 +403,8 @@ class Menu(tk.Tk):  # La clase menu es heredada de la clase tk.Tk
 
         boton_3_menu_principal_msj = "Consultar cantidad de tiquetes disponibles por localización"
         boton_3_menu_principal = tk.Button(marco_botones_menu_principal,
-                                           text=boton_3_menu_principal_msj)
+                                           text=boton_3_menu_principal_msj,
+                                           command=self.mostrar_ventana_consulta_can_tiquetes)
         boton_3_menu_principal.pack(side=tk.LEFT, padx=Menu.CONFIG_MENU["PAD_X_BOTON"])
 
         boton_4_menu_principal_msj = "Consultar horario de trenes de hoy"
@@ -315,7 +422,15 @@ class Menu(tk.Tk):  # La clase menu es heredada de la clase tk.Tk
     def mostrar_ventana_insertar_tiquetes(self):
         if self.__ventana_insertar_tiquetes_visible is False:
             self.__ventana_insertar_tiquetes = VentanaInsertarTiquetes(self)
-            self.__ventana_insertar_tiquetes = True
+            self.__ventana_insertar_tiquetes_visible = True
         else:
             self.__ventana_insertar_tiquetes_visible = False
             self.__ventana_insertar_tiquetes = None
+
+    def mostrar_ventana_consulta_can_tiquetes(self):
+        if self.__ventana_consultas_visible is False:
+            self.__ventana_consultas = VentanaConsulta(self)
+            self.__ventana_consultas_visible = True
+        else:
+            self.__ventana_consultas_visible = False
+            self.__ventana_consultas = None
