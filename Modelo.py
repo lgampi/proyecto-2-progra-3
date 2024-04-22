@@ -214,10 +214,11 @@ class GestorDeEstacion:
     def __init__(self):
         self.__tiquetes = []
         self.__trenes = []
-        self.__destinos = ["Heredia", "Cartago"]
-        self.__horarios = ["6:00AM", "7:00AM", "8:00AM", "3:00PM", "4:00PM", "5:00PM"]
-        self.__can_tiquetes = ["25", "50", "100"]
-        self.__criterios_seleccion = ["Tren", "Destino", "Horario"]
+        # Se usan tuplas dado que son valores que no se desean modificar.
+        self.__destinos = ("Heredia", "Cartago")
+        self.__horarios = ("6:00AM", "7:00AM", "8:00AM", "3:00PM", "4:00PM", "5:00PM")
+        self.__can_tiquetes = ("25", "50", "100")
+        self.__criterios_seleccion = ("Tren", "Destino", "Horario")
 
     def get_criterios_seleccion(self):
         return self.__criterios_seleccion

@@ -118,7 +118,7 @@ class VentanaVentaTiquete(tk.Toplevel):  # tk.TopLevel permite crear una ventana
                 mostrar = False
 
             if mostrar:  # Si no hay ni un solo tiquete leido del archivo, no se deben mostrar las opciones.
-                self.titulo = "Seleccione las opciones correspondientes y de click en el botón de 'Guardar cambios'"
+                self.titulo = "Seleccione las opciones correspondientes y de click en el botón de 'Crear tiquetes'"
                 self.etiqueta_titulo = tk.Label(self, text=self.titulo)
                 self.etiqueta_titulo.pack(padx=Menu.CONFIG_MENU["PAD_X_BOTON"], pady=Menu.CONFIG_MENU["PAD_Y_BOTON"])
                 self.geometry(Menu.CONFIG_MENU["TAMANO_INICIAL"])
@@ -460,6 +460,12 @@ class Menu(tk.Tk):  # La clase menu es heredada de la clase tk.Tk
             boton_4_menu_principal = tk.Button(marco_botones_menu_principal, text=boton_4_menu_principal_msj,
                                                command=self.mostrar_ventana_horarios)
             boton_4_menu_principal.pack(side=tk.LEFT, padx=Menu.CONFIG_MENU["PAD_X_BOTON"])
+
+            marco_espaciador = tk.Frame(self,height=50)  # crea un frame para hacer espacio
+            marco_espaciador.pack()
+
+            boton_cerrar = tk.Button(self, text="Cerrar Programa", command=self.destroy)
+            boton_cerrar.pack()
         except Exception as e:
             print(f"Ha ocurrido la excepcion: {e}")
 
