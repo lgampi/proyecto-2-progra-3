@@ -1,6 +1,4 @@
 # Modelo: Clases que almacenan datos y logica del programa
-import os
-
 
 class Tren:
     def __init__(self, matricula, estado):
@@ -67,33 +65,45 @@ class ManejadorArchivosTren(ManejadorArchivos):
     RUTA_TRENES = "archivos/trenes.txt"
 
     def __init__(self):
-        if ManejadorArchivosTren.instancia_singleton is None:
-            ManejadorArchivosTren.instancia_singleton = self
-        else:
-            raise Exception("No debe crear más objetos")
+        try:
+            if ManejadorArchivosTren.instancia_singleton is None:
+                ManejadorArchivosTren.instancia_singleton = self
+            else:
+                raise Exception("No debe crear más objetos")
+        except Exception as e:
+            print(f"Ha ocurrido la excepcion: {e}")
 
     @staticmethod  # Los métodos estáticos, son métodos de la clase, no de un objeto.
     def obtener_singleton():
-        if ManejadorArchivosTren.instancia_singleton is None:
-            ManejadorArchivosTren()
-        return ManejadorArchivosTren.instancia_singleton
+        try:
+            if ManejadorArchivosTren.instancia_singleton is None:
+                ManejadorArchivosTren()
+            return ManejadorArchivosTren.instancia_singleton
+        except Exception as e:
+            print(f"Ha ocurrido la excepcion: {e}")
 
     def leer_de_archivo(self):
-        ruta = ManejadorArchivosTren.RUTA_TRENES
         trenes = []
-        with open(ruta, "r") as file:
-            for line in file:
-                linea = line.split(",")
-                matricula = linea[0]
-                estado = linea[1]
-                tren = Tren(matricula, estado)
-                trenes.append(tren)
+        try:
+            ruta = ManejadorArchivosTren.RUTA_TRENES
+            with open(ruta, "r") as file:
+                for line in file:
+                    linea = line.split(",")
+                    matricula = linea[0]
+                    estado = linea[1]
+                    tren = Tren(matricula, estado)
+                    trenes.append(tren)
+        except Exception as e:
+            print(f"Ha ocurrido la excepcion: {e}")
         return trenes
 
     def escribir_a_archivo(self, o):
-        ruta = ManejadorArchivosTren.RUTA_TRENES
-        with open(ruta, "w") as file:
-            file.write("Prueba trenes")
+        try:
+            ruta = ManejadorArchivosTren.RUTA_TRENES
+            with open(ruta, "w") as file:
+                file.write("Prueba trenes")
+        except Exception as e:
+            print(f"Ha ocurrido la excepcion: {e}")
 
 
 class ManejadorArchivosTiquete(ManejadorArchivos):
@@ -103,32 +113,41 @@ class ManejadorArchivosTiquete(ManejadorArchivos):
     RUTA_TIQUETES = "archivos/tiquetes.txt"
 
     def __init__(self):
-        if ManejadorArchivosTiquete.instancia_singleton is None:
-            ManejadorArchivosTiquete.instancia_singleton = self
-        else:
-            raise Exception("No debe crear más objetos")
+        try:
+            if ManejadorArchivosTiquete.instancia_singleton is None:
+                ManejadorArchivosTiquete.instancia_singleton = self
+            else:
+                raise Exception("No debe crear más objetos")
+        except Exception as e:
+            print(f"Ha ocurrido la excepcion: {e}")
 
     @staticmethod  # Los métodos estáticos, son métodos de la clase, no de un objeto.
     def obtener_singleton():
-        if ManejadorArchivosTiquete.instancia_singleton is None:
-            ManejadorArchivosTiquete()
-        return ManejadorArchivosTiquete.instancia_singleton
+        try:
+            if ManejadorArchivosTiquete.instancia_singleton is None:
+                ManejadorArchivosTiquete()
+            return ManejadorArchivosTiquete.instancia_singleton
+        except Exception as e:
+            print(f"Ha ocurrido la excepcion: {e}")
 
     def leer_de_archivo(self):
         tiquetes = []
-        ruta = ManejadorArchivosTiquete.RUTA_TIQUETES
-        with open(ruta, "r") as file:
-            for line in file:
-                dato_tiquete = line.split(",")  # Separar el string por "," en una lista.
-                matricula = dato_tiquete[0]
-                num_tiquete = dato_tiquete[1]
-                destino = dato_tiquete[2]
-                hora_salida = dato_tiquete[3]
-                vendido = False  # Por default en True, a menos de que se encuentre lo contrario en el archivo
-                if int(dato_tiquete[4]) == 1:
-                    vendido = True
-                tiquete = Tiquete(matricula, num_tiquete, destino, hora_salida, vendido)
-                tiquetes.append(tiquete)
+        try:
+            ruta = ManejadorArchivosTiquete.RUTA_TIQUETES
+            with open(ruta, "r") as file:
+                for line in file:
+                    dato_tiquete = line.split(",")  # Separar el string por "," en una lista.
+                    matricula = dato_tiquete[0]
+                    num_tiquete = dato_tiquete[1]
+                    destino = dato_tiquete[2]
+                    hora_salida = dato_tiquete[3]
+                    vendido = False  # Por default en True, a menos de que se encuentre lo contrario en el archivo
+                    if int(dato_tiquete[4]) == 1:
+                        vendido = True
+                    tiquete = Tiquete(matricula, num_tiquete, destino, hora_salida, vendido)
+                    tiquetes.append(tiquete)
+        except Exception as e:
+            print(f"Ha ocurrido la excepcion: {e}")
         return tiquetes
 
     def escribir_a_archivo(self, o):
@@ -141,6 +160,8 @@ class ManejadorArchivosTiquete(ManejadorArchivos):
                 file.write(f"{o.get_tren()},{o.get_num_tiquete()},{o.get_destino()},{o.get_hora_salida()},{vendido}\n")
         except FileNotFoundError:
             print(f"Excepcion, el archivo {ruta} no existe")
+        except Exception as e:
+            print(f"Ha ocurrido la excepcion: {e}")
 
     def vender_tiquete(self, num_tiquete):
         ruta = ManejadorArchivosTiquete.RUTA_TIQUETES
@@ -159,6 +180,8 @@ class ManejadorArchivosTiquete(ManejadorArchivos):
                 file.writelines(lineas_por_escribir)
         except FileNotFoundError:
             print(f"Excepcion, el archivo {ruta} no existe")
+        except Exception as e:
+            print(f"Ha ocurrido la excepcion: {e}")
 
 
 class FabricaManejadorArchivos:
@@ -167,12 +190,15 @@ class FabricaManejadorArchivos:
 
     @staticmethod
     def fabricar_manejador_de_archivos(tipo):
-        if tipo == 1:
-            return ManejadorArchivosTiquete.obtener_singleton()
-        elif tipo == 2:
-            return ManejadorArchivosTren.obtener_singleton()
-        else:
-            raise Exception("No existe este tipo de objeto a fabricar")
+        try:
+            if tipo == 1:
+                return ManejadorArchivosTiquete.obtener_singleton()
+            elif tipo == 2:
+                return ManejadorArchivosTren.obtener_singleton()
+            else:
+                raise Exception("No existe este tipo de objeto a fabricar")
+        except Exception as e:
+            print(f"Ha ocurrido la excepcion: {e}")
 
 
 class GestorDeEstacion:
@@ -207,75 +233,92 @@ class GestorDeEstacion:
 
     def obtener_tiquetes(self):
         # Cada vez que la vista pide la lista de tiquetes, esta se actualiza.
-        self.__tiquetes = GestorDeEstacion.MANEJADOR_TIQUETES.leer_de_archivo()
+        try:
+            self.__tiquetes = GestorDeEstacion.MANEJADOR_TIQUETES.leer_de_archivo()
 
-        # Actualizar la ultima secuencia de tiquetes
+            # Actualizar la ultima secuencia de tiquetes
 
-        if len(self.__tiquetes) > 0:  # Se valida si hay al menos un tiquete en el archivo
-            ultimo_tiquete = self.__tiquetes[-1]  # Con -1 se accede al ultimo elemento de la lista
-            GestorDeEstacion.secuencia_tiquetes = int(
-                ultimo_tiquete.get_num_tiquete()) + 1  # Ej: si estamos en el 400, ahora el ultimo es el 401
-        else:
-            pass  # Como la secuencia se inicializa en 1, no hace falta reasignar su valor.
+            if len(self.__tiquetes) > 0:  # Se valida si hay al menos un tiquete en el archivo
+                ultimo_tiquete = self.__tiquetes[-1]  # Con -1 se accede al ultimo elemento de la lista
+                GestorDeEstacion.secuencia_tiquetes = int(
+                    ultimo_tiquete.get_num_tiquete()) + 1  # Ej: si estamos en el 400, ahora el ultimo es el 401
+            else:
+                pass  # Como la secuencia se inicializa en 1, no hace falta reasignar su valor.
+        except Exception as e:
+            print(f"Ha ocurrido la excepcion: {e}")
         return self.__tiquetes
 
     def insertar_tiquetes(self, can_tiquetes, tren, destino, hora_de_salida):
-        # Mejorar despues
-        self.obtener_tiquetes()  # Se actualiza la lista de tiquetes, y se obtiene el último tiquete generado.
+        try:
+            self.obtener_tiquetes()  # Se actualiza la lista de tiquetes, y se obtiene el último tiquete generado.
 
-        for i in range(0, can_tiquetes):  # Para cada tiquete se quiere insertar
-            nuevo_tiquete = Tiquete(tren, GestorDeEstacion.secuencia_tiquetes, destino, hora_de_salida, False)
-            GestorDeEstacion.MANEJADOR_TIQUETES.escribir_a_archivo(nuevo_tiquete)
-            # Como ya actualizamos los tiquetes, con la lista que ya tenemos, basta con agregarlo a dicha lista
-            self.__tiquetes.append(nuevo_tiquete)
-            GestorDeEstacion.secuencia_tiquetes += 1
+            for i in range(0, can_tiquetes):  # Para cada tiquete se quiere insertar
+                nuevo_tiquete = Tiquete(tren, GestorDeEstacion.secuencia_tiquetes, destino, hora_de_salida, False)
+                GestorDeEstacion.MANEJADOR_TIQUETES.escribir_a_archivo(nuevo_tiquete)
+                # Como ya actualizamos los tiquetes, con la lista que ya tenemos, basta con agregarlo a dicha lista
+                self.__tiquetes.append(nuevo_tiquete)
+                GestorDeEstacion.secuencia_tiquetes += 1
+        except Exception as e:
+            print(f"Ha ocurrido la excepcion: {e}")
 
     def obtener_tiquetes_no_vendidos(self, criterio):
-        # Con el parametro criterio, vamos a agrupar por horario, destino o matricula.
-        if criterio not in self.__criterios_seleccion:  # Si criterio no es ninguno de estos tres
-            raise Exception("Parametro 'criterio' invalido")
-
-        self.obtener_tiquetes()  # Con esto actualizamos la lista de tiquetes (self.__tiquetes)
-
-        # Con esto vamos actualizamos la lista de trenes y obtenemos sus matriculas.
-        matriculas_trenes = self.obtener_matriculas_trenes()
-        grupos = []
         tiquetes_resultantes = dict()  # Vamos a usar un diccionario para agrupar a los tiquetes
-        if criterio == "Tren":
-            for matricula_tren in matriculas_trenes:  # Para cada matricula del tren
-                # Acá, a cada matricula del tren, le damos una lista vacia para agrupar, usando la matricula como llave.
-                tiquetes_resultantes[matricula_tren] = []
-            for tiquete in self.__tiquetes:
-                if tiquete.get_vendido() is False:
-                    tiquetes_resultantes[tiquete.get_tren()].append(tiquete)
-        elif criterio == "Destino":
-            for destino in self.__destinos:  # Para cada destino
-                # A cada destino se le da una lista vacia para agrupar, usando el destino como llave,
-                tiquetes_resultantes[destino] = []
-            for tiquete in self.__tiquetes:
-                if tiquete.get_vendido() is False:
-                    tiquetes_resultantes[tiquete.get_destino()].append(tiquete)
-        elif criterio == "Horario":
-            for horario in self.__horarios:  # Para cada horario
-                # A cada horario se le da una lista vacia para agrupar, usando lah ora como llave.
-                tiquetes_resultantes[horario] = []
-            for tiquete in self.__tiquetes:
-                if tiquete.get_vendido() is False:
-                    tiquetes_resultantes[tiquete.get_hora_salida()].append(tiquete)
+        try:
+            # Con el parametro criterio, vamos a agrupar por horario, destino o matricula.
+            if criterio not in self.__criterios_seleccion:  # Si criterio no es ninguno de estos tres
+                raise Exception("Parametro 'criterio' invalido")
 
+            self.obtener_tiquetes()  # Con esto actualizamos la lista de tiquetes (self.__tiquetes)
+
+            # Con esto vamos actualizamos la lista de trenes y obtenemos sus matriculas.
+            matriculas_trenes = self.obtener_matriculas_trenes()
+            grupos = []
+
+            if criterio == "Tren":
+                for matricula_tren in matriculas_trenes:  # Para cada matricula del tren
+                    # Acá, a cada matricula del tren, le damos una lista vacia para agrupar, usando la matricula como llave.
+                    tiquetes_resultantes[matricula_tren] = []
+                for tiquete in self.__tiquetes:
+                    if tiquete.get_vendido() is False:
+                        tiquetes_resultantes[tiquete.get_tren()].append(tiquete)
+            elif criterio == "Destino":
+                for destino in self.__destinos:  # Para cada destino
+                    # A cada destino se le da una lista vacia para agrupar, usando el destino como llave,
+                    tiquetes_resultantes[destino] = []
+                for tiquete in self.__tiquetes:
+                    if tiquete.get_vendido() is False:
+                        tiquetes_resultantes[tiquete.get_destino()].append(tiquete)
+            elif criterio == "Horario":
+                for horario in self.__horarios:  # Para cada horario
+                    # A cada horario se le da una lista vacia para agrupar, usando lah ora como llave.
+                    tiquetes_resultantes[horario] = []
+                for tiquete in self.__tiquetes:
+                    if tiquete.get_vendido() is False:
+                        tiquetes_resultantes[tiquete.get_hora_salida()].append(tiquete)
+        except Exception as e:
+            print(f"Ha ocurrido la excepcion: {e}")
         return tiquetes_resultantes
 
     def obtener_can_tiquetes_no_vendidos_formato_matriz(self):
-        tiquetes_no_vendidos = self.obtener_tiquetes_no_vendidos(self.__criterios_seleccion[1])
         matriz_resultado = []
-        for llave, valor in tiquetes_no_vendidos.items():
-            matriz_resultado.append([llave, len(tiquetes_no_vendidos[llave])])
+        try:
+            tiquetes_no_vendidos = self.obtener_tiquetes_no_vendidos(self.__criterios_seleccion[1])
+            for llave, valor in tiquetes_no_vendidos.items():
+                matriz_resultado.append([llave, len(tiquetes_no_vendidos[llave])])
+        except Exception as e:
+            print(f"Ha ocurrido la excepcion: {e}")
         return matriz_resultado
 
     def obtener_matriculas_trenes(self):
-        self.__trenes = GestorDeEstacion.MANEJADOR_TRENES.leer_de_archivo()
-        # List comprehension, genera una lista de matriculas apartir de la lista de objetos de trenes self.__trenes .
-        return [tren.get_matricula() for tren in self.__trenes]
+        try:
+            self.__trenes = GestorDeEstacion.MANEJADOR_TRENES.leer_de_archivo()
+            # List comprehension, genera una lista de matriculas apartir de la lista de objetos de trenes self.__trenes .
+            return [tren.get_matricula() for tren in self.__trenes]
+        except Exception as e:
+            print(f"Ha ocurrido la excepcion: {e}")
 
     def vender_tiquete(self, num_tiquete_a_vender):
-        GestorDeEstacion.MANEJADOR_TIQUETES.vender_tiquete(num_tiquete_a_vender)
+        try:
+            GestorDeEstacion.MANEJADOR_TIQUETES.vender_tiquete(num_tiquete_a_vender)
+        except Exception as e:
+            print(f"Ha ocurrido la excepcion: {e}")

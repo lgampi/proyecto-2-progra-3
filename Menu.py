@@ -457,7 +457,8 @@ class Menu(tk.Tk):  # La clase menu es heredada de la clase tk.Tk
             boton_3_menu_principal.pack(side=tk.LEFT, padx=Menu.CONFIG_MENU["PAD_X_BOTON"])
 
             boton_4_menu_principal_msj = "Consultar horario de trenes de hoy"
-            boton_4_menu_principal = tk.Button(marco_botones_menu_principal, text=boton_4_menu_principal_msj)
+            boton_4_menu_principal = tk.Button(marco_botones_menu_principal, text=boton_4_menu_principal_msj,
+                                               command=self.mostrar_ventana_horarios)
             boton_4_menu_principal.pack(side=tk.LEFT, padx=Menu.CONFIG_MENU["PAD_X_BOTON"])
         except Exception as e:
             print(f"Ha ocurrido la excepcion: {e}")
@@ -492,5 +493,11 @@ class Menu(tk.Tk):  # La clase menu es heredada de la clase tk.Tk
             else:
                 self.__ventana_consultas_visible = False
                 self.__ventana_consultas = None
+        except Exception as e:
+            print(f"Ha ocurrido la excepcion: {e}")
+
+    def mostrar_ventana_horarios(self):
+        try:
+            raise Exception("Funcionalidad no disponible aun!")
         except Exception as e:
             print(f"Ha ocurrido la excepcion: {e}")
